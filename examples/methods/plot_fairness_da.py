@@ -21,13 +21,13 @@ X = X_df.drop(columns=["PINCP", "SEX"]).to_numpy()
 
 # Take 10% of data while preserving the distribution
 X, _, y, _, sample_domain, _ = train_test_split(
-    X, y, sample_domain, test_size=0.9, stratify=sample_domain, random_state=42
+    X, y, sample_domain, test_size=0.8, stratify=sample_domain, random_state=3
 )
 
 # Normalize features
 X = StandardScaler().fit_transform(X)
 
-# Re-label domains: source=1 (e.g. male), target=2 (e.g. female)
+# Re-label domains: source=1 (e.g. male), target=-1 (e.g. female)
 sample_domain = np.where(sample_domain == 1, 1, -1)
 
 
@@ -85,9 +85,7 @@ plt.show()
 # %%
 # ----------------------------------
 # Build OTDA pipeline for regression
-clf_otda = LinearOTMapping(
-    RandomForestRegressor(n_estimators=100, random_state=31415, alpha=0.5)
-)
+clf_otda = LinearOTMapping(RandomForestRegressor(n_estimators=50, random_state=31415))
 
 # modify y such that for the target domain there are only nan
 y_for_fit = np.where(sample_domain == 1, y, np.nan)
@@ -192,4 +190,6 @@ print(
     "Error difference after OTDA:",
     compute_error_difference(y_stacked_ot, y, sensitive_attr=sample_domain),
 )
+
+
 # %%
