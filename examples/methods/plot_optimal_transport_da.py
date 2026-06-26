@@ -10,7 +10,7 @@ This example illustrates the OTDA method from [1] on a simple classification tas
 
 """
 
-# Author: Remi Flamary
+# Authors: Remi Flamary, Marie Generali Lince, Sonia Mazelet
 #
 # License: BSD 3-Clause
 # sphinx_gallery_thumbnail_number = 4
@@ -403,7 +403,7 @@ plt.title(label=f"OTDA linear (ACC={ACC_linear:.2f})")
 # ------------------------------
 # The OTDA method can be used with a parameter alpha that controls the amount of
 # transport applied to the source samples following the expression
-# X_mapped = (1-alpha)*X_target + alpha*OT(X_target).
+# X_mapped = (1-alpha)*X_source + alpha*OT(X_source).
 # When alpha=0, the method is equivalent to a standard domain adaptation method
 # (e.g. SVC).
 # When alpha=1, the method is equivalent to the OTDA method.

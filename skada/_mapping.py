@@ -90,6 +90,24 @@ class BaseOTMappingAdapter(BaseAdapter):
         allow_source=False,
         **params,
     ) -> np.ndarray:
+        """Transform the data using the fitted transport estimator.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The data to transform.
+        y : array-like, shape (n_samples,), optional
+            The labels of the data (not used in transformation).
+        sample_domain : array-like, shape (n_samples,), optional
+            The domain labels.
+        allow_source : bool, optional (default=False)
+            Whether to allow transformation of source samples.
+
+        Returns
+        -------
+        X_adapt : array-like, shape (n_samples, n_features)
+            The transformed data.
+        """
         # xxx(okachaiev): implement auto-infer for sample_domain
         X, sample_domain = check_X_domain(
             X,
@@ -103,10 +121,10 @@ class BaseOTMappingAdapter(BaseAdapter):
         # thus there's no need to perform any transformations
         if X_source.shape[0] > 0:
             X_source = self.ot_transport_.transform(Xs=X_source)
+            X_source = self.alpha * X_source + (1 - self.alpha) * X_source
         X_adapt, _ = source_target_merge(
             X_source, X_target, sample_domain=sample_domain
         )
-        X_adapt = self.alpha * X_adapt + (1 - self.alpha) * X
         return X_adapt
 
     @abstractmethod
@@ -129,6 +147,8 @@ class OTMappingAdapter(BaseOTMappingAdapter):
     max_iter : int, optional (default=100_000)
         The maximum number of iterations before stopping OT algorithm if it
         has not converged.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -183,6 +203,8 @@ def OTMapping(
     max_iter : int, optional (default=100_000)
         The maximum number of iterations before stopping OT algorithm if it
         has not converged.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -224,6 +246,8 @@ class EntropicOTMappingAdapter(BaseOTMappingAdapter):
     tol : float, optional (default=10e-9)
         The precision required to stop the optimization of the Sinkhorn
         algorithm.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -295,6 +319,8 @@ def EntropicOTMapping(
     tol : float, optional (default=10e-9)
         The precision required to stop the optimization of the Sinkhorn
         algorithm.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -347,6 +373,8 @@ class ClassRegularizerOTMappingAdapter(BaseOTMappingAdapter):
         The number of iteration in the inner loop
     tol : float, optional (default=10e-9)
         Stop threshold on error (inner sinkhorn solver) (>0)
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -436,6 +464,8 @@ def ClassRegularizerOTMapping(
         The number of iteration in the inner loop
     tol : float, optional (default=10e-9)
         Stop threshold on error (inner sinkhorn solver) (>0)
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -476,6 +506,8 @@ class LinearOTMappingAdapter(BaseOTMappingAdapter):
         regularization added to the diagonals of covariances.
     bias: bool, optional (default=True)
         estimate bias.
+    alpha: float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -520,6 +552,8 @@ def LinearOTMapping(
         regularization added to the diagonals of covariances.
     bias: bool, optional (default=True)
         estimate bias.
+    alpha: float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -603,6 +637,8 @@ class MultiLinearMongeAlignmentAdapter(BaseAdapter):
         Barycenter of the source domains (mean, cov).
     _mappings_ : dict
         Dictionary of mappings for each domain.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     References
     ----------
@@ -756,6 +792,8 @@ def MultiLinearMongeAlignment(
     test_time : bool, optional (default=False)
         If True, the estimator can be updated at test time to map new
         target domains unseen during training
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -857,6 +895,8 @@ class CORALAdapter(BaseAdapter):
           - float between 0 and 1: fixed shrinkage parameter.
     assume_centered: bool, default=False
         If True, data are not centered before computation.
+    alpha: float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -999,6 +1039,8 @@ def CORAL(
           - float between 0 and 1: fixed shrinkage parameter.
     assume_centered: bool, default=False
         If True, data are not centered before computation.
+    alpha: float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
@@ -1044,6 +1086,8 @@ class MMDLSConSMappingAdapter(BaseAdapter):
         Tolerance for the stopping criterion in the optimization.
     max_iter : int, default=100
         Number of maximum iteration before stopping the optimization.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Attributes
     ----------
@@ -1267,6 +1311,8 @@ def MMDLSConSMapping(
         Tolerance for the stopping criterion in the optimization.
     max_iter : int, default=100
         Number of maximum iteration before stopping the optimization.
+    alpha : float, optional (default=1.0)
+        The weight for the original data in the transformed data.
 
     Returns
     -------
